@@ -1,59 +1,125 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+// using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+// using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using sportServerDotnet.Configuration;
+using sportServerDotnet.Data;
+using sportServerDotnet.Hubs;
+// using sumApi.Configuration;
 
 namespace sportServerDotnet
 {
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+	public class Startup
+	{
+		public Startup(IConfiguration configuration)
+		{
+			Configuration = configuration;
+		}
 
-        public IConfiguration Configuration { get; }
+		public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
+		// This method gets called by the runtime. Use this method to add services to the container.
+		public void ConfigureServices(IServiceCollection services)
+		{
+			services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
+			services.AddDbContextPool<ApiDbContext>(
+			    options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+			// services.AddDbContextPool<ApiDbContext>( 
+			//     options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+			// "DefaultConnection" : "server=db;database=TestDB;Trusted_Connection=false;user=SA;password=Sawy4507@"
+			var key = Encoding.ASCII.GetBytes(Configuration["JwtConfig:Secret"]);
+			var tokenValidationParams = new TokenValidationParameters
+			{
+				ValidateIssuerSigningKey = true,
+				IssuerSigningKey = new SymmetricSecurityKey(key),
+				ValidateIssuer = false,
+				ValidateAudience = false,
+				ValidateLifetime = true,
+				RequireExpirationTime = false,
+				ClockSkew = TimeSpan.Zero
+			};
+			services.AddSingleton(tokenValidationParams);
+			services.AddSingleton(new NotfiHub());
+			services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			})
+			.AddJwtBearer(jwt =>
+			{
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "sportServerDotnet", Version = "v1" });
-            });
-        }
+				jwt.SaveToken = true;
+				jwt.TokenValidationParameters = tokenValidationParams;
+			});
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "sportServerDotnet v1"));
-            }
+			services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+				    .AddEntityFrameworkStores<ApiDbContext>();
 
-            // app.UseHttpsRedirection();
+			services.AddSignalR();
 
-            app.UseRouting();
+			services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 
-            // app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
-    }
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1", new OpenApiInfo { Title = "sumApi", Version = "v1" });
+			});
+
+			services.AddCors(options =>
+			{
+				options.AddPolicy(name: "Open", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+			});
+		}
+
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		{
+			if (env.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+				app.UseSwagger();
+				app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "sumApi v1"));
+			}
+			else
+			{
+				app.UseStatusCodePagesWithReExecute("/error/{0}");
+			}
+
+			// app.UseHttpsRedirection();
+
+			app.UseRouting();
+
+			app.UseAuthorization();
+			app.UseCors("Open"); ;
+			// app.MapHub<NotfiHub>("/notfi"); 
+			
+			// app.UseSignalR(route => { route.MapHub<MyHub>("/myHub"); });
+
+
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllers();
+				endpoints.MapHub<NotfiHub>("/noti");
+			});
+
+		}
+	}
 }
