@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
@@ -12,8 +13,9 @@ namespace sportServerDotnet.Controllers.Models
 		public string UserId { get; set; }
         public string Text { get; set; }
         public string Image {get; set;}
-        public int support { get; set; }
-        
+        public List<Support> Supports { get; set; }
+        public List<Comment> Comments { get; set; }
+
 		public DateTime AddedDate { get; set; }
 
 		[ForeignKey(nameof(UserId))]

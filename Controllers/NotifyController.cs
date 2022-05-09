@@ -17,7 +17,6 @@ namespace sportServerDotnet.Controllers
 		[HttpPost]
 		public void notifyMsg(int id)
 		{
-			int x = 3;
 			_notifyUser.SendMessage(id);
 		}
 	}

@@ -182,7 +182,8 @@ namespace sportServerDotnet.Controllers
 		    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
 		    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
 		}),
-				Expires = DateTime.UtcNow.AddSeconds(30), // 5-10 
+				// Expires = DateTime.UtcNow.AddSeconds(30), // 5-10 
+				Expires = DateTime.UtcNow.AddDays(10), // 5-10 
 				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
 			};
 
