@@ -61,11 +61,11 @@ namespace sportServerDotnet.Controllers
 			try
 			{
 				var challenge = await _apiDbContext.Challenge.Where(c => c.Id == id).OrderBy(c => c.Id).FirstAsync();
-				var ArrBytes = System.IO.File.ReadAllBytes("Controllers/Storage/"+challenge.Url);
+				// var ArrBytes = System.IO.File.ReadAllBytes("Controllers/Storage/"+challenge.Url);
 				return Ok(new GetChallengeResponse 
 				{ 
 					Id=id, 
-					FileData=ArrBytes, 
+					Url=challenge.Url,
 					Admin_Id = challenge.Admin_Id, 
 					Description = challenge.Description
 				});
