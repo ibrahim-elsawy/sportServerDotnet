@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using sportServerDotnet.Controllers.Models.DTOs.Requests;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Collections.Generic;
 
 namespace sportServerDotnet.Controllers
 {
@@ -156,6 +157,53 @@ namespace sportServerDotnet.Controllers
 					challenge.Url = filename;
 				}
 				// var ret = await _apiDbContext.Challenge.AddAsync(new Challenge { Description = desc, Url = "djfk", Admin_Id = user_id});
+				await _apiDbContext.SaveChangesAsync();
+				return Ok();
+
+			}
+			catch (System.InvalidOperationException )
+			{
+
+				return BadRequest(new Error { msg="challenge is not found "}); 
+			}
+
+		}
+
+		[HttpPost("join/{challenge_id}")]
+		public async Task<IActionResult> AddUser( int challenge_id)
+		{
+			try
+			{ 
+				// var challenge =  await _apiDbContext.Challenge.Where(c => c.Id == id).OrderBy(c => c.Id).FirstAsync();
+				var jwtTokenHandler = new JwtSecurityTokenHandler();
+				Request.Headers.TryGetValue("Authorization", out var authHeader);
+				var token = authHeader[0].Replace("Bearer ", "");
+				var tokenInVerification =  jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
+				var user_id = tokenInVerification.Claims.ElementAt(0).Value;
+				// var user = await _userManager.GetUserAsync();
+				// var ret = await _apiDbContext.Challenge.AddAsync(new Challenge { Description = desc, Url = "djfk", Admin_Id = user_id});
+				var user = await _userManager.FindByIdAsync(user_id);
+				var challenge = await _apiDbContext.Challenge.Where(c => c.Id == challenge_id).FirstAsync();
+				challenge.Users = new List<IdentityUser>();
+				challenge.Users.Add(user);
+				await _apiDbContext.SaveChangesAsync();
+				return Ok();
+
+			}
+			catch (System.InvalidOperationException )
+			{
+
+				return BadRequest(new Error { msg="challenge is not found "}); 
+			}
+
+		}
+
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteChallege( int id)
+		{
+			try
+			{ 
+				var challenge = await _apiDbContext.Challenge.Where(c => c.Id == id).FirstAsync();
 				await _apiDbContext.SaveChangesAsync();
 				return Ok();
 
