@@ -11,13 +11,9 @@ namespace sportServerDotnet.Controllers.Models
     {
         public int Id {get; set;}
         public string Text { get; set; }
-		public int PostId {get; set;}
         public string UserId { get; set; }
-		public List<Support> Supports { get; set; }
+		public ICollection<Support> Supports { get; set; }
         public int CommentId { get; set; }
-
-		[ForeignKey(nameof(PostId))]
-        public Post Post { get; set; }
 
         [ForeignKey(nameof(UserId))]
         public IdentityUser User { get; set; }

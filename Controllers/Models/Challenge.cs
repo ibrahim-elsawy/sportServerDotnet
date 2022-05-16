@@ -12,7 +12,7 @@ namespace sportServerDotnet.Controllers.Models
         public string Url { get; set; }
         public string Admin_Id { get; set; }
 		public List<Post> Posts {get; set;}
-        public List<IdentityUser> Users{ get; set; }
+        public List<string> Users_Id{ get; set; }
 
     }
 }

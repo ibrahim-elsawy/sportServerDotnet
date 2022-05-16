@@ -65,6 +65,11 @@ namespace sportServerDotnet.Controllers
 				if (isCreated.Succeeded)
 				{
 					var jwtToken = await GenerateJwtToken(newUser);
+					var user_id = newUser.Id;
+					var ret = await _apiDbContext.Dashboards.AddAsync(new Dashboard { 
+						UserId=user_id,
+					});
+					await _apiDbContext.SaveChangesAsync();
 					Console.WriteLine($"register function line 68 {jwtToken}");
 					
 					return Ok(jwtToken);

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using sportServerDotnet.Data;
@@ -10,9 +11,10 @@ using sportServerDotnet.Data;
 namespace sportServerDotnet.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220516130620_fix_support")]
+    partial class fix_support
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -413,13 +415,31 @@ namespace sportServerDotnet.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int?>("CommentId")
+                    b.Property<int>("CommentId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("PostId")
+                    b.Property<int>("CommentId1")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("RepliesId")
+                    b.Property<int>("CommentId2")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId1")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId2")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RepliesId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RepliesId1")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReplyId")
                         .HasColumnType("integer");
 
                     b.Property<string>("UserId")
@@ -429,9 +449,15 @@ namespace sportServerDotnet.Migrations
 
                     b.HasIndex("CommentId");
 
+                    b.HasIndex("CommentId1");
+
                     b.HasIndex("PostId");
 
-                    b.HasIndex("RepliesId");
+                    b.HasIndex("PostId1");
+
+                    b.HasIndex("RepliesId1");
+
+                    b.HasIndex("ReplyId");
 
                     b.HasIndex("UserId");
 
@@ -612,24 +638,51 @@ namespace sportServerDotnet.Migrations
 
             modelBuilder.Entity("sportServerDotnet.Controllers.Models.Support", b =>
                 {
+                    b.HasOne("sportServerDotnet.Controllers.Models.Comment", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("sportServerDotnet.Controllers.Models.Comment", null)
                         .WithMany("Supports")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("CommentId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("sportServerDotnet.Controllers.Models.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("sportServerDotnet.Controllers.Models.Post", null)
                         .WithMany("Supports")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("PostId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("sportServerDotnet.Controllers.Models.Replies", null)
                         .WithMany("Supports")
-                        .HasForeignKey("RepliesId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("RepliesId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("sportServerDotnet.Controllers.Models.Replies", "Reply")
+                        .WithMany()
+                        .HasForeignKey("ReplyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("Post");
+
+                    b.Navigation("Reply");
 
                     b.Navigation("User");
                 });

@@ -13,8 +13,9 @@ namespace sportServerDotnet.Controllers.Models
 		public string UserId { get; set; }
         public string Text { get; set; }
         public string Image {get; set;}
-        public List<Support> Supports { get; set; }
-        public List<Comment> Comments { get; set; }
+        public ICollection<Dashboard> Dashboards { get; set; }
+		public ICollection<Support> Supports { get; set; }
+        public ICollection<Comment> Comments { get; set; }
 
 		public DateTime AddedDate { get; set; }
 

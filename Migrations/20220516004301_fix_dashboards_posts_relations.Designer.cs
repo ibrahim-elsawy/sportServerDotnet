@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using sportServerDotnet.Data;
@@ -10,9 +11,10 @@ using sportServerDotnet.Data;
 namespace sportServerDotnet.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220516004301_fix_dashboards_posts_relations")]
+    partial class fix_dashboards_posts_relations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -389,6 +391,9 @@ namespace sportServerDotnet.Migrations
                     b.Property<int>("CommentId2")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
@@ -400,6 +405,8 @@ namespace sportServerDotnet.Migrations
                     b.HasIndex("CommentId");
 
                     b.HasIndex("CommentId2");
+
+                    b.HasIndex("PostId");
 
                     b.HasIndex("UserId");
 
@@ -416,7 +423,13 @@ namespace sportServerDotnet.Migrations
                     b.Property<int?>("CommentId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("PostId")
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId1")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId2")
                         .HasColumnType("integer");
 
                     b.Property<int?>("RepliesId")
@@ -430,6 +443,8 @@ namespace sportServerDotnet.Migrations
                     b.HasIndex("CommentId");
 
                     b.HasIndex("PostId");
+
+                    b.HasIndex("PostId1");
 
                     b.HasIndex("RepliesId");
 
@@ -601,11 +616,19 @@ namespace sportServerDotnet.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("sportServerDotnet.Controllers.Models.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
 
                     b.Navigation("comment");
+
+                    b.Navigation("Post");
 
                     b.Navigation("User");
                 });
@@ -617,10 +640,17 @@ namespace sportServerDotnet.Migrations
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("sportServerDotnet.Controllers.Models.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("sportServerDotnet.Controllers.Models.Post", null)
                         .WithMany("Supports")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("PostId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("sportServerDotnet.Controllers.Models.Replies", null)
                         .WithMany("Supports")
@@ -630,6 +660,8 @@ namespace sportServerDotnet.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Post");
 
                     b.Navigation("User");
                 });

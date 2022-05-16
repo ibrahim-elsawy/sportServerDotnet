@@ -182,10 +182,13 @@ namespace sportServerDotnet.Controllers
 				var user_id = tokenInVerification.Claims.ElementAt(0).Value;
 				// var user = await _userManager.GetUserAsync();
 				// var ret = await _apiDbContext.Challenge.AddAsync(new Challenge { Description = desc, Url = "djfk", Admin_Id = user_id});
-				var user = await _userManager.FindByIdAsync(user_id);
+				// var user = await _userManager.FindByIdAsync(user_id);
 				var challenge = await _apiDbContext.Challenge.Where(c => c.Id == challenge_id).FirstAsync();
-				challenge.Users = new List<IdentityUser>();
-				challenge.Users.Add(user);
+				if (challenge.Users_Id == null)
+				{
+					challenge.Users_Id = new List<string>(); 
+				}
+				challenge.Users_Id.Add(user_id);
 				await _apiDbContext.SaveChangesAsync();
 				return Ok();
 

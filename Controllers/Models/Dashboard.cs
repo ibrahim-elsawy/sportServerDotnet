@@ -12,7 +12,7 @@ namespace sportServerDotnet.Controllers.Models
     {
         public int Id { get; set; }
 		public string UserId { get; set; }
-        public List<Post> Posts { get; set; }
+        public ICollection<Post> Posts { get; set; }
 
 		[ForeignKey(nameof(UserId))]
 		public IdentityUser User { get; set; }

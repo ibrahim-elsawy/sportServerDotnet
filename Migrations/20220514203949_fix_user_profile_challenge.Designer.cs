@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using sportServerDotnet.Data;
@@ -10,30 +11,16 @@ using sportServerDotnet.Data;
 namespace sportServerDotnet.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220514203949_fix_user_profile_challenge")]
+    partial class fix_user_profile_challenge
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
                 .HasAnnotation("ProductVersion", "5.0.7")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-            modelBuilder.Entity("DashboardPost", b =>
-                {
-                    b.Property<int>("DashboardsId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PostsId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("DashboardsId", "PostsId");
-
-                    b.HasIndex("PostsId");
-
-                    b.ToTable("DashboardPost");
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -320,6 +307,9 @@ namespace sportServerDotnet.Migrations
                     b.Property<int?>("ChallengeId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("DashboardId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Image")
                         .HasColumnType("text");
 
@@ -332,6 +322,8 @@ namespace sportServerDotnet.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChallengeId");
+
+                    b.HasIndex("DashboardId");
 
                     b.HasIndex("UserId");
 
@@ -389,6 +381,9 @@ namespace sportServerDotnet.Migrations
                     b.Property<int>("CommentId2")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
@@ -400,6 +395,8 @@ namespace sportServerDotnet.Migrations
                     b.HasIndex("CommentId");
 
                     b.HasIndex("CommentId2");
+
+                    b.HasIndex("PostId");
 
                     b.HasIndex("UserId");
 
@@ -416,7 +413,13 @@ namespace sportServerDotnet.Migrations
                     b.Property<int?>("CommentId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("PostId")
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId1")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId2")
                         .HasColumnType("integer");
 
                     b.Property<int?>("RepliesId")
@@ -430,6 +433,8 @@ namespace sportServerDotnet.Migrations
                     b.HasIndex("CommentId");
 
                     b.HasIndex("PostId");
+
+                    b.HasIndex("PostId1");
 
                     b.HasIndex("RepliesId");
 
@@ -465,21 +470,6 @@ namespace sportServerDotnet.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Profile");
-                });
-
-            modelBuilder.Entity("DashboardPost", b =>
-                {
-                    b.HasOne("sportServerDotnet.Controllers.Models.Dashboard", null)
-                        .WithMany()
-                        .HasForeignKey("DashboardsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("sportServerDotnet.Controllers.Models.Post", null)
-                        .WithMany()
-                        .HasForeignKey("PostsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -571,6 +561,10 @@ namespace sportServerDotnet.Migrations
                         .WithMany("Posts")
                         .HasForeignKey("ChallengeId");
 
+                    b.HasOne("sportServerDotnet.Controllers.Models.Dashboard", null)
+                        .WithMany("Posts")
+                        .HasForeignKey("DashboardId");
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
@@ -601,11 +595,19 @@ namespace sportServerDotnet.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("sportServerDotnet.Controllers.Models.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
 
                     b.Navigation("comment");
+
+                    b.Navigation("Post");
 
                     b.Navigation("User");
                 });
@@ -617,10 +619,17 @@ namespace sportServerDotnet.Migrations
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("sportServerDotnet.Controllers.Models.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("sportServerDotnet.Controllers.Models.Post", null)
                         .WithMany("Supports")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("PostId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("sportServerDotnet.Controllers.Models.Replies", null)
                         .WithMany("Supports")
@@ -630,6 +639,8 @@ namespace sportServerDotnet.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Post");
 
                     b.Navigation("User");
                 });
@@ -653,6 +664,11 @@ namespace sportServerDotnet.Migrations
                     b.Navigation("Replies");
 
                     b.Navigation("Supports");
+                });
+
+            modelBuilder.Entity("sportServerDotnet.Controllers.Models.Dashboard", b =>
+                {
+                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("sportServerDotnet.Controllers.Models.Post", b =>

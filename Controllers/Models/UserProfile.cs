@@ -12,8 +12,8 @@ namespace sportServerDotnet.Controllers.Models
         public string UserId { get; set; }
 		public string Image { get; set; }
         public string Bio { get; set; }
-        public List<IdentityUser> Followers{ get; set; }
-        public List<IdentityUser> Following{ get; set; }
+        public List<string> Followers{ get; set; }
+        public List<string> Following{ get; set; }
 
 		[ForeignKey(nameof(UserId))]
 		public IdentityUser User { get; set; }
