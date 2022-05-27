@@ -37,17 +37,39 @@ namespace sportServerDotnet.Controllers
 			_tokenValidationParams = tokenValidationParameters;
 			_apiDbContext = apiDbContext;
 		}
-		[HttpGet()]
-		public async Task<IActionResult> GetChallenges()
+		[HttpPost("all")]
+		public async Task<IActionResult> GetChallenges([FromBody] RangeRequest rangeRequest)
 		{
 			// var jwtTokenHandler = new JwtSecurityTokenHandler();
 			// Request.Headers.TryGetValue("Authorization", out var authHeader);
 			// var token = authHeader[0].Replace("Bearer ", "");
 			// var tokenInVerification =  jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
 			// var user_id = tokenInVerification.Claims.ElementAt(0).Value;
-			var challengesList =  _apiDbContext.Challenge.OrderBy(c => c.Id);
-			return Ok(new GetChallengesResponse { Challenges = await challengesList.ToListAsync() });
+			try{
+				var challengesList =  _apiDbContext.Challenge
+				.OrderBy(c => c.Id)
+				.Skip(rangeRequest.skip)
+				.Take(rangeRequest.take);
+				return Ok(new GetChallengesResponse { Challenges = await challengesList.ToListAsync() });
+			}
+			catch (Exception){
+				return BadRequest(new Error { msg = " mathzrsh ya metnak " });
+			}
 
+		}
+		[HttpGet("count")]
+		public async Task<IActionResult> GetNumChallenge()
+		{
+			try
+			{
+				var count = await _apiDbContext.Challenge.CountAsync();
+				return Ok(new CountResponse {num=count});
+			}
+			catch (Exception )
+			{
+				 // TODO
+				return BadRequest(new Error {msg="bad request"});
+			}
 		}
 		[HttpGet("{id}")]
 		public async Task<IActionResult> GetChallengeWithId(int id)
@@ -205,8 +227,18 @@ namespace sportServerDotnet.Controllers
 		public async Task<IActionResult> DeleteChallege( int id)
 		{
 			try
-			{ 
+			{ 	
+				var jwtTokenHandler = new JwtSecurityTokenHandler();
+				Request.Headers.TryGetValue("Authorization", out var authHeader);
+				var token = authHeader[0].Replace("Bearer ", "");
+				var tokenInVerification =  jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
+				var user_id = tokenInVerification.Claims.ElementAt(0).Value;
 				var challenge = await _apiDbContext.Challenge.Where(c => c.Id == id).FirstAsync();
+				if(challenge.Admin_Id != user_id)
+				{
+					return BadRequest();
+				}
+				_apiDbContext.Challenge.Remove(challenge);
 				await _apiDbContext.SaveChangesAsync();
 				return Ok();
 

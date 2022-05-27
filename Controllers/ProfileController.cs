@@ -17,7 +17,7 @@ using sportServerDotnet.Data;
 namespace sportServerDotnet.Controllers
 {
     [ApiController]
-	[Route("post")]
+	[Route("profile")]
 	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 	public class ProfileController : ControllerBase
 	{
@@ -34,6 +34,21 @@ namespace sportServerDotnet.Controllers
 			_userManager = userManager;
 			_tokenValidationParams = tokenValidationParameters;
 			_apiDbContext = apiDbContext;
+		}
+		
+		[HttpGet("username/{user_id}")]
+		public async Task<IActionResult> GetUsername([FromRoute] string user_id)
+		{
+			try
+			{
+				var user = await _userManager.FindByIdAsync(user_id);
+				return Ok(user.UserName);
+			}
+			catch (System.Exception ex)
+			{
+				 // TODO
+				return BadRequest(new Error {msg="User is not found "});
+			}
 		}
         [HttpGet("{user_id}")]
         public async Task<IActionResult> GetProfile([FromRoute] string user_id)
