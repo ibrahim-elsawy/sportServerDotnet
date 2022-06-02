@@ -50,30 +50,85 @@ namespace sportServerDotnet.Controllers
 				return BadRequest(new Error {msg="User is not found "});
 			}
 		}
-        [HttpGet("{user_id}")]
-        public async Task<IActionResult> GetProfile([FromRoute] string user_id)
-        {
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-			Request.Headers.TryGetValue("Authorization", out var authHeader);
-			var token = authHeader[0].Replace("Bearer ", "");
-			var tokenInVerification = jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
-			var init_user_id = tokenInVerification.Claims.ElementAt(0).Value;
+		[HttpGet("username/me")]
+		public async Task<IActionResult> GetUsername()
+		{
 			try
 			{
-                var profileFinal = await _apiDbContext.Profile.Where(p => p.UserId == user_id).OrderBy(c => c.Id).FirstAsync();
-                if (profileFinal.Followers == null)
-                {
-					profileFinal.Followers = new List<string>();
-				}
-				profileFinal.Followers.Add(init_user_id);
-                var profileInit = await _apiDbContext.Profile.Where(p => p.UserId == init_user_id).OrderBy(c => c.Id).FirstAsync();
-                if (profileInit.Following == null)
-                {
-					profileInit.Following = new List<string>();
-				}
-				profileInit.Following.Add(user_id);
-				await _apiDbContext.SaveChangesAsync();
-				return Ok();
+				var jwtTokenHandler = new JwtSecurityTokenHandler(); 
+				Request.Headers.TryGetValue("Authorization", out var authHeader); 
+				var token = authHeader[0].Replace("Bearer ", ""); 
+				var tokenInVerification = jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken); 
+				var user_id = tokenInVerification.Claims.ElementAt(0).Value;
+				var user = await _userManager.FindByIdAsync(user_id);
+				return Ok(user.UserName);
+			}
+			catch (System.Exception ex)
+			{
+				 // TODO
+				return BadRequest(new Error {msg="User is not found "});
+			}
+		}
+
+		[HttpGet("info/{user_id}")]
+		public async Task<IActionResult> GetProfile([FromRoute] string user_id)
+		{
+			try
+			{
+				var user = await _apiDbContext.Profile.Where(p => p.UserId == user_id).FirstAsync();
+				return Ok(user);
+			}
+			catch (System.Exception ex)
+			{
+				 // TODO
+				return BadRequest(new Error {msg="User is not found "});
+			}
+		}
+		[HttpGet("info/me")]
+		public async Task<IActionResult> GetProfile()
+		{
+			try
+			{
+				var jwtTokenHandler = new JwtSecurityTokenHandler(); 
+				Request.Headers.TryGetValue("Authorization", out var authHeader); 
+				var token = authHeader[0].Replace("Bearer ", ""); 
+				var tokenInVerification = jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken); 
+				var user_id = tokenInVerification.Claims.ElementAt(0).Value;
+				var user = await _apiDbContext.Profile.Where(p => p.UserId == user_id).FirstAsync();
+				return Ok(user);
+			}
+			catch (System.Exception ex)
+			{
+				 // TODO
+				return BadRequest(new Error {msg="User is not found "});
+			}
+		}
+		
+	// follow user_id
+        [HttpGet("{user_id}")]
+        public async Task<IActionResult> FollowUser([FromRoute] string user_id)
+        { 
+		var jwtTokenHandler = new JwtSecurityTokenHandler(); 
+		Request.Headers.TryGetValue("Authorization", out var authHeader); 
+		var token = authHeader[0].Replace("Bearer ", ""); 
+		var tokenInVerification = jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken); 
+		var init_user_id = tokenInVerification.Claims.ElementAt(0).Value; 
+		try
+		{ 
+			var profileFinal = await _apiDbContext.Profile.Where(p => p.UserId == user_id).OrderBy(c => c.Id).FirstAsync(); 
+			if (profileFinal.Followers == null) 
+			{ 
+				profileFinal.Followers = new List<string>(); 
+			} 
+			profileFinal.Followers.Add(init_user_id); 
+			var profileInit = await _apiDbContext.Profile.Where(p => p.UserId == init_user_id).OrderBy(c => c.Id).FirstAsync(); 
+			if (profileInit.Following == null) 
+			{ 
+				profileInit.Following = new List<string>(); 
+			} 
+			profileInit.Following.Add(user_id); 
+			await _apiDbContext.SaveChangesAsync(); 
+			return Ok();
 			}
 			catch (System.InvalidOperationException)
 			{
@@ -82,8 +137,8 @@ namespace sportServerDotnet.Controllers
 			}
         }
 
-        [HttpPost("{id}")]
-		public async Task<IActionResult> UpdateProfile([FromRoute] int id, [FromForm] IFormCollection data)
+        [HttpPost("{id}")] 
+	public async Task<IActionResult> UpdateProfile([FromRoute] int id, [FromForm] IFormCollection data)
 		{
 			var jwtTokenHandler = new JwtSecurityTokenHandler();
 			Request.Headers.TryGetValue("Authorization", out var authHeader);
@@ -91,20 +146,7 @@ namespace sportServerDotnet.Controllers
 			var tokenInVerification = jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
 			var user_id = tokenInVerification.Claims.ElementAt(0).Value;
 			try
-			{
-				// if (supp.Post_Id != null)
-				// {
-				// 	var post = await _apiDbContext.Posts.Where(p => p.Id == supp.Post_Id).OrderBy(c => c.Id).FirstAsync();
-				// 	if (post.Supports == null)
-				// 	{
-				// 		post.Supports = new List<Support>();
-				// 	}
-				// 	post.Supports.Add(new Support
-				// 	{
-				// 		// PostId = post.Id,
-				// 		UserId = user_id
-				// 	});
-				// }
+			{ 
 				string bio = null;
 				foreach (var k in data)
 				{
@@ -123,14 +165,14 @@ namespace sportServerDotnet.Controllers
 					{
 						await file.CopyToAsync(stream);
 					}
-				}
-                var profile = await _apiDbContext.Profile.Where(p => p.Id == id).OrderBy(c => c.Id).FirstAsync();
-                if (profile.Image != filename)
-                {
+				} 
+				var profile = await _apiDbContext.Profile.Where(p => p.Id == id).OrderBy(c => c.Id).FirstAsync(); 
+				if (profile.Image != filename) 
+				{
 					profile.Image = filename;
-				}
-                if (profile.Bio != bio)
-                {
+				} 
+				if (profile.Bio != bio) 
+				{
 					profile.Bio = bio;
 				}
 				await _apiDbContext.SaveChangesAsync();
@@ -139,72 +181,11 @@ namespace sportServerDotnet.Controllers
 			catch (System.InvalidOperationException)
 			{
 
-				return BadRequest(new Error { msg = "Post is not found " });
+				return BadRequest(new Error { msg = "profile is not found " });
 			}
 
 		}
 
-        // [HttpPost("{id}")]
-		// public async Task<IActionResult> UpdateProfile([FromRoute] int id, [FromForm] IFormCollection data)
-		// {
-		// 	var jwtTokenHandler = new JwtSecurityTokenHandler();
-		// 	Request.Headers.TryGetValue("Authorization", out var authHeader);
-		// 	var token = authHeader[0].Replace("Bearer ", "");
-		// 	var tokenInVerification = jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
-		// 	var user_id = tokenInVerification.Claims.ElementAt(0).Value;
-		// 	try
-		// 	{
-		// 		// if (supp.Post_Id != null)
-		// 		// {
-		// 		// 	var post = await _apiDbContext.Posts.Where(p => p.Id == supp.Post_Id).OrderBy(c => c.Id).FirstAsync();
-		// 		// 	if (post.Supports == null)
-		// 		// 	{
-		// 		// 		post.Supports = new List<Support>();
-		// 		// 	}
-		// 		// 	post.Supports.Add(new Support
-		// 		// 	{
-		// 		// 		// PostId = post.Id,
-		// 		// 		UserId = user_id
-		// 		// 	});
-		// 		// }
-		// 		string bio = null;
-		// 		foreach (var k in data)
-		// 		{
-		// 			if (k.Key == "bio")
-		// 			{
-		// 				bio = k.Value[0];
-		// 			}
-		// 		}
-		// 		var file = data.Files[0];
-		// 		var filename = RandomString(24) + Path.GetExtension(file.FileName);
-		// 		var fullFileName = Path.Join("Controllers/Storage/", filename);
-		// 		if (data.Files.Count != 0)
-		// 		{
-		// 			file = data.Files[0];
-		// 			using (var stream = System.IO.File.Create(fullFileName))
-		// 			{
-		// 				await file.CopyToAsync(stream);
-		// 			}
-		// 		}
-        //         var profile = await _apiDbContext.Profile.Where(p => p.Id == id).OrderBy(c => c.Id).FirstAsync();
-        //         if (profile.Image != filename)
-        //         {
-		// 			profile.Image = filename;
-		// 		}
-        //         if (profile.Bio != bio)
-        //         {
-		// 			profile.Bio = bio;
-		// 		}
-		// 		await _apiDbContext.SaveChangesAsync();
-		// 		return Ok();
-		// 	}
-		// 	catch (System.InvalidOperationException)
-		// 	{
-
-		// 		return BadRequest(new Error { msg = "Post is not found " });
-		// 	}
-
-		// }
 
 		private string RandomString(int length)
 		{

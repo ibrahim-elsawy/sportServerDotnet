@@ -250,6 +250,35 @@ namespace sportServerDotnet.Controllers
 			}
 
 		}
+		[HttpGet("valid/{id}")]
+		public async Task<IActionResult> IsUserJoined( int id)
+		{
+			try
+			{ 	
+				var jwtTokenHandler = new JwtSecurityTokenHandler();
+				Request.Headers.TryGetValue("Authorization", out var authHeader);
+				var token = authHeader[0].Replace("Bearer ", "");
+				var tokenInVerification =  jwtTokenHandler.ValidateToken(token, _tokenValidationParams, out var validatedToken);
+				var user_id = tokenInVerification.Claims.ElementAt(0).Value;
+				var challenge = await _apiDbContext.Challenge.Where(c => c.Id == id).FirstAsync();
+				if(challenge.Admin_Id != user_id)
+				{
+					return BadRequest();
+				}
+				if (challenge.Users_Id != null && challenge.Users_Id.Contains(user_id))
+				{
+					return Ok(new BoolRes{valid = true});
+				}
+				return Ok(new BoolRes{valid = false});
+
+			}
+			catch (System.InvalidOperationException )
+			{
+
+				return BadRequest(new Error { msg="challenge is not found "}); 
+			}
+
+		}
 		private string RandomString(int length)
 		{
 			var random = new Random();

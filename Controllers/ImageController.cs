@@ -6,13 +6,14 @@ using sportServerDotnet.Controllers.Models.DTOs.Responses;
 using System.IO;
 
 namespace sportServerDotnet.Controllers
-{
-    [ApiController]
+{ 
+	[ApiController]
 	[Route("image")]
-	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class ImageController : ControllerBase
-    {
-        [HttpGet("{route}")]
+	[AllowAnonymous]
+	// [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] 
+	public class ImageController : ControllerBase 
+	{ 
+		[HttpGet("{route}")]
 		public IActionResult GetImage(string route)
 		{
 			try
